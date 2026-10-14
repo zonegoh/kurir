@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kurir</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="toolbar">
+    <strong class="brand">📦 Kurir</strong>
+    <button id="btn-new" title="New bookmark">＋ Bookmark</button>
+    <div class="menu">
+      <button>Import ▾</button>
+      <div class="menu-items">
+        <button data-import="filezilla">FileZilla (sitemanager.xml)</button>
+        <button data-import="winscp">WinSCP (WinSCP.ini)</button>
+        <button data-import="cyberduck">Cyberduck (.duck)</button>
+      </div>
+    </div>
+    <button id="btn-export">Export…</button>
+    <button id="btn-bulk-delete">Delete…</button>
+    <span class="spacer"></span>
+    <span id="conn-label" class="muted"></span>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <input id="search" type="search" placeholder="Search bookmarks…" />
+      <div class="seg" id="group-by">
+        <button data-group="type" class="on">By type</button>
+        <button data-group="folder">By group</button>
+      </div>
+      <ul id="bookmarks"></ul>
+    </aside>
+
+    <main id="main">
+      <div id="empty" class="empty">
+        <p>Double-click a bookmark to connect.</p>
+        <p class="muted">Or import your sites from FileZilla, WinSCP or Cyberduck.</p>
+      </div>
+
+      <section id="browser" hidden>
+        <div class="pathbar">
+          <button id="btn-up" title="Parent folder">↑</button>
+          <button id="btn-refresh" title="Refresh">⟳</button>
+          <input id="path" spellcheck="false" />
+          <button id="btn-mkdir">New Folder</button>
+          <button id="btn-newfile">New File</button>
+          <button id="btn-upload">Upload</button>
+          <button id="btn-download">Download</button>
+          <button id="btn-rename">Rename</button>
+          <button id="btn-delete" class="danger">Delete</button>
+          <button id="btn-disconnect">Disconnect</button>
+        </div>
+        <div class="table-wrap" id="drop-zone">
+          <table>
+            <thead><tr><th>Name</th><th class="num">Size</th><th>Modified</th><th>Permissions</th></tr></thead>
+            <tbody id="files"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer id="status" class="status">Ready</footer>
+
+  <!-- bookmark editor -->
+  <dialog id="dlg-bookmark">
+    <form method="dialog" id="form-bookmark">
+      <h3 id="bm-title">Bookmark</h3>
+      <div class="grid">
+        <label>Name <input name="name" /></label>
+        <label>Protocol
+          <select name="protocol">
+            <option value="sftp">SFTP (SSH)</option>
+            <option value="ftp">FTP</option>
+            <option value="ftpes">FTPES (explicit TLS)</option>
+            <option value="ftps">FTPS (implicit TLS)</option>
+            <option value="s3">S3 / S3-compatible</option>
+          </select>
+        </label>
+        <label class="wide">Host <input name="host" required placeholder="example.com" /></label>
+        <label>Port <input name="port" type="number" min="1" max="65535" /></label>
+        <label><span data-s3="Access Key ID">Username</span> <input name="username" autocomplete="off" /></label>
+        <label>Authentication
+          <select name="auth">
+            <option value="password">Password</option>
+            <option value="key">Private key</option>
+            <option value="ask">Ask every time</option>
+            <option value="anonymous">Anonymous</option>
+          </select>
+        </label>
+        <label><span data-s3="Secret Access Key">Password</span>
+          <input name="password" type="password" autocomplete="off" placeholder="unchanged" />
+        </label>
+        <label class="wide" data-show="key">Private key file
+          <span class="row"><input name="key_path" /><button type="button" id="pick-key">…</button></span>
+        </label>
+        <label data-show="s3">Region <input name="region" placeholder="us-east-1" /></label>
+        <label class="wide">Remote path <input name="remote_path" placeholder="(home)" /></label>
+        <label class="wide">Local folder <input name="local_path" placeholder="~/Downloads" /></label>
+        <label>Group <input name="folder" list="folders" /></label>
+        <label class="wide">Comment <input name="comment" /></label>
+      </div>
+      <datalist id="folders"></datalist>
+      <menu>
+        <button type="button" id="bm-delete" class="danger">Delete</button>
+        <span class="spacer"></span>
+        <button value="cancel" formnovalidate>Cancel</button>
+        <button value="save" class="primary">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <!-- password prompt -->
+  <dialog id="dlg-password">
+    <form method="dialog">
+      <h3 id="pw-title">Password</h3>
+      <input id="pw-input" type="password" autocomplete="off" />
+      <label class="check"><input id="pw-remember" type="checkbox" /> Save in Keychain</label>
+      <menu><span class="spacer"></span><button value="cancel">Cancel</button><button value="ok" class="primary">Connect</button></menu>
+    </form>
+  </dialog>
+
+  <!-- import preview -->
+  <dialog id="dlg-import" class="wide-dlg">
+    <form method="dialog">
+      <h3 id="imp-title">Import</h3>
+      <p id="imp-source" class="muted small"></p>
+      <ul id="imp-warnings" class="warnings"></ul>
+      <label class="check"><input type="checkbox" id="imp-all" checked /> Select all</label>
+      <ul id="imp-list" class="checklist"></ul>
+      <menu><span class="spacer"></span><button value="cancel">Cancel</button><button value="ok" class="primary">Import selected</button></menu>
+    </form>
+  </dialog>
+
+  <!-- export -->
+  <dialog id="dlg-export" class="wide-dlg">
+    <form method="dialog">
+      <h3>Export bookmarks</h3>
+      <label>Format
+        <select id="exp-kind">
+          <option value="filezilla">FileZilla — sitemanager.xml</option>
+          <option value="winscp">WinSCP — WinSCP.ini</option>
+          <option value="cyberduck">Cyberduck — folder of .duck files</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="exp-pw" /> Include saved passwords
+        <span class="muted small">(FileZilla: base64, WinSCP: obfuscated — <b>not encrypted</b>. Cyberduck can't store them in files.)</span></label>
+      <label class="check"><input type="checkbox" id="exp-all" checked /> Select all</label>
+      <ul id="exp-list" class="checklist"></ul>
+      <menu><span class="spacer"></span><button value="cancel">Cancel</button><button value="ok" class="primary">Export…</button></menu>
+    </form>
+  </dialog>
+
+  <!-- delete several bookmarks -->
+  <dialog id="dlg-delete" class="wide-dlg">
+    <form method="dialog">
+      <h3>Delete bookmarks</h3>
+      <input id="del-search" type="search" placeholder="Filter…" />
+      <div class="row del-tools">
+        <label class="check"><input type="checkbox" id="del-all" /> Select all</label>
+        <span class="spacer"></span>
+        <span class="muted small">Select type:</span>
+        <button type="button" data-deltype="sftp">SFTP</button>
+        <button type="button" data-deltype="ftp">FTP</button>
+        <button type="button" data-deltype="s3">S3</button>
+      </div>
+      <ul id="del-list" class="checklist"></ul>
+      <menu><span id="del-count" class="muted small"></span><span class="spacer"></span><button value="cancel" formnovalidate>Cancel</button><button value="ok" class="danger" id="del-ok">Delete</button></menu>
+    </form>
+  </dialog>
+
+  <!-- right-click menu for the file list -->
+  <div id="ctx" class="ctx" hidden></div>
+
+  <!-- generic text input (replaces window.prompt, which WKWebView does not show) -->
+  <dialog id="dlg-input">
+    <form method="dialog">
+      <h3 id="in-title"></h3>
+      <input id="in-value" spellcheck="false" autocomplete="off" />
+      <menu><span class="spacer"></span><button value="cancel" formnovalidate>Cancel</button><button value="ok" class="primary" id="in-ok">OK</button></menu>
+    </form>
+  </dialog>
+
+  <!-- errors -->
+  <dialog id="dlg-error">
+    <form method="dialog">
+      <h3 id="err-title">Error</h3>
+      <p id="err-msg" class="err-msg"></p>
+      <details id="err-details"><summary class="muted small">Details</summary><pre id="err-raw"></pre></details>
+      <menu><button type="button" id="err-copy">Copy</button><span class="spacer"></span><button value="ok" class="primary">OK</button></menu>
+    </form>
+  </dialog>
+
+  <!-- permissions -->
+  <dialog id="dlg-perms">
+    <form method="dialog">
+      <h3 id="perm-title">File permissions</h3>
+      <table class="perm-grid">
+        <tr><th></th><th>Read</th><th>Write</th><th>Execute</th></tr>
+        <tr><td>Owner</td><td><input type="checkbox" data-bit="256"></td><td><input type="checkbox" data-bit="128"></td><td><input type="checkbox" data-bit="64"></td></tr>
+        <tr><td>Group</td><td><input type="checkbox" data-bit="32"></td><td><input type="checkbox" data-bit="16"></td><td><input type="checkbox" data-bit="8"></td></tr>
+        <tr><td>Public</td><td><input type="checkbox" data-bit="4"></td><td><input type="checkbox" data-bit="2"></td><td><input type="checkbox" data-bit="1"></td></tr>
+      </table>
+      <label>Numeric value <input id="perm-octal" maxlength="4" pattern="[0-7]{3,4}" /></label>
+      <menu><span class="spacer"></span><button value="cancel" formnovalidate>Cancel</button><button value="ok" class="primary">Apply</button></menu>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

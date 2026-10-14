@@ -1,0 +1,43 @@
+[package]
+name = "kurir"
+version = "0.1.0"
+edition = "2021"
+description = "One simple SFTP / FTP(S) / S3 client with FileZilla, WinSCP and Cyberduck bookmark import/export"
+license = "MIT"
+
+[lib]
+name = "kurir_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ssh2 = { version = "0.9", features = ["vendored-openssl"] }
+suppaftp = { version = "6", features = ["native-tls", "deprecated"] }
+native-tls = "0.2"
+rust-s3 = { version = "0.35", default-features = false, features = ["sync-native-tls", "fail-on-err"] }
+roxmltree = "0.20"
+plist = "1"
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+uuid = { version = "1", features = ["v4"] }
+base64 = "0.22"
+percent-encoding = "2"
+sha2 = "0.10"
+dirs = "5"
+aes = "0.8"
+cbc = "0.1"
+sha1 = "0.10"
+hmac = "0.12"
+argon2 = "0.5"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework = "3"
+
+# rust-s3 with a fix for spaces in list prefixes (see vendor/rust-s3/src/request/request_trait.rs)
+[patch.crates-io]
+rust-s3 = { path = "vendor/rust-s3" }
