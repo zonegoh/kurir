@@ -3,7 +3,7 @@
 **Kurir** — one simple SFTP / FTP(S) / S3 client that combines what you use FileZilla, WinSCP and Cyberduck for. Built with Tauri v2 (Rust + plain HTML/JS).
 It imports and exports bookmarks from **FileZilla**, **WinSCP** and **Cyberduck**.
 
-**Download:** [latest release](https://github.com/zonegoh/kurir/releases/latest). The macOS build (universal: Intel + Apple Silicon, macOS 10.15+) is not signed yet: right-click Kurir.app → **Open** on first launch.
+**Download:** no prebuilt release yet; build it yourself (see [Development](#development)). The macOS build (universal: Intel + Apple Silicon, macOS 10.15+) is not signed yet: right-click Kurir.app → **Open** on first launch.
 
 ## Features
 - Bookmarks with groups and search; passwords and S3 secret keys are kept in the OS keychain (macOS Keychain / Windows Credential Manager), never in `bookmarks.json`.
@@ -47,7 +47,7 @@ Local test servers for `live` (Python venv): `pip install pyftpdlib "moto[server
 `python -m pyftpdlib -i 127.0.0.1 -p 2121 -w -u test -P test`, `sftpserver -k hostkey --host 127.0.0.1 -p 2222`,
 `moto_server -H 127.0.0.1 -p 5055` and `curl -X PUT http://127.0.0.1:5055/testbucket`.
 
-Data: `~/Library/Application Support/com.ptscbd.kurir/` (`bookmarks.json`, `known_hosts.json`).
+Data: `~/Library/Application Support/com.zonegoh.kurir/` (`bookmarks.json`, `known_hosts.json`).
 
 ## Not in v1 yet
 Transfer queue with progress bar, parallel transfers, resume, editing files in place, folder sync, WebDAV/OneDrive/Google Drive.

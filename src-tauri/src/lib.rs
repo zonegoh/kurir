@@ -370,25 +370,12 @@ fn open_local(path: &Path, edit: bool) -> R<()> {
     cmd.arg(path).spawn().map(|_| ()).map_err(|e| format!("Cannot open file: {e}"))
 }
 
-/// The app used to be called DuckLite (data in `com.ptscbd.ducklite`): copy its bookmarks once.
-fn migrate_from_ducklite(dir: &Path) {
-    let Some(old) = dir.parent().map(|p| p.join("com.ptscbd.ducklite")) else { return };
-    if dir.join("bookmarks.json").exists() || !old.join("bookmarks.json").exists() {
-        return;
-    }
-    let _ = std::fs::create_dir_all(dir);
-    for f in ["bookmarks.json", "known_hosts.json"] {
-        let _ = std::fs::copy(old.join(f), dir.join(f));
-    }
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
-            migrate_from_ducklite(&dir);
             app.manage(AppState { store: Store::new(dir), sessions: Mutex::new(HashMap::new()) });
             Ok(())
         })
