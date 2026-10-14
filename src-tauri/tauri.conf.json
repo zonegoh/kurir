@@ -3,17 +3,41 @@
   "productName": "Kurir",
   "version": "0.1.0",
   "identifier": "com.ptscbd.kurir",
-  "build": { "frontendDist": "../src" },
+  "build": {
+    "frontendDist": "../src"
+  },
   "app": {
     "withGlobalTauri": true,
     "windows": [
-      { "title": "Kurir", "width": 1100, "height": 700, "minWidth": 760, "minHeight": 480, "dragDropEnabled": true }
+      {
+        "title": "Kurir",
+        "width": 1100,
+        "height": 700,
+        "minWidth": 760,
+        "minHeight": 480,
+        "dragDropEnabled": true
+      }
     ],
-    "security": { "csp": null }
+    "security": {
+      "csp": null
+    }
   },
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg", "nsis"],
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+    "targets": [
+      "app",
+      "dmg",
+      "nsis"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
   }
 }

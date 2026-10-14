@@ -3,7 +3,7 @@
 **Kurir** — one simple SFTP / FTP(S) / S3 client that combines what you use FileZilla, WinSCP and Cyberduck for. Built with Tauri v2 (Rust + plain HTML/JS).
 It imports and exports bookmarks from **FileZilla**, **WinSCP** and **Cyberduck**.
 
-**Download:** [latest release](https://github.com/zonegoh/kurir/releases/latest). The macOS (Apple Silicon) build is not signed yet: right-click Kurir.app → **Open** on first launch.
+**Download:** [latest release](https://github.com/zonegoh/kurir/releases/latest). The macOS build (universal: Intel + Apple Silicon, macOS 10.15+) is not signed yet: right-click Kurir.app → **Open** on first launch.
 
 ## Features
 - Bookmarks with groups and search; passwords and S3 secret keys are kept in the OS keychain (macOS Keychain / Windows Credential Manager), never in `bookmarks.json`.
